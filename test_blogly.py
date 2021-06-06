@@ -16,17 +16,23 @@ db.create_all()
 class BloglyViewsTestCase(TestCase):
 
     def setUp(self):
-        """Add sample pet."""
-
+        """Add sample user."""
+        Post.query.delete()
         User.query.delete()
-
+        
         user = User(first_name="Tom", last_name="Test")
         db.session.add(user)
+        db.session.commit()
+
+        post = Post(title="My Post", content="Lorem Ipsum Delorem", user=user)
+        db.session.add(post)
         db.session.commit()
 
         self.user_id = user.id
         self.image_url = user.image_url
         self.user = user
+
+        self.post_id = post.id
         
 
     def tearDown(self):
@@ -77,27 +83,19 @@ class BloglyViewsTestCase(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertNotIn("Tom Test", html)
 
-    ### When run individually, all the below tests work, but when run in combination with any other tests, all tests fail. No idea why###
-    """def test_add_post(self):
+    def test_add_post(self):
         with app.test_client() as client:
-            d = {"title": "My Post", "content":"Lorem ipsum delorem"}
+            d = {"title": "My Next Post", "content":"Lorem ipsum delorem"}
             resp = client.post(f"/users/{self.user_id}/posts/new", data=d, follow_redirects=True)
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("My Post", html)
+            self.assertIn("My Next Post", html)
 
     def test_edit_post(self):
         with app.test_client() as client:
-            d = {"title": "My Post", "content":"Lorem ipsum delorem"}
-            resp = client.post(f"/users/{self.user_id}/posts/new", data=d, follow_redirects=True)
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("My Post", html)
-
             d = {"title": "My Edited Post", "content":"Lorem ipsum delorem"}
-            resp = client.post(f"/posts/{self.user_id}/edit", data=d, follow_redirects=True)
+            resp = client.post(f"/posts/{self.post_id}/edit", data=d, follow_redirects=True)
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
@@ -105,15 +103,8 @@ class BloglyViewsTestCase(TestCase):
 
     def test_delete_post(self):
         with app.test_client() as client:
-            d = {"title": "My Post", "content":"Lorem ipsum delorem"}
-            resp = client.post(f"/users/{self.user_id}/posts/new", data=d, follow_redirects=True)
+            resp = client.post(f"/posts/{self.post_id}/delete", follow_redirects=True)
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("My Post", html)
-
-            resp = client.post(f"/posts/{self.user_id}/delete", follow_redirects=True)
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertNotIn("My Post", html)"""
+            self.assertNotIn("My Post", html)
